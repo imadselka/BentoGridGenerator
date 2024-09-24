@@ -130,10 +130,11 @@ export function BentoGridGenerator() {
 
   const removeItem = (id: string) => {
     // Save current state to undo stack before removing
-    setUndoStack([...undoStack, items]);
+    setUndoStack((prev) => [...prev, items]);
     setRedoStack([]); // Clear redo stack on new action
 
-    setItems(items.filter((item) => item.i !== id));
+    // Use a functional update to ensure you're working with the latest state
+    setItems((prevItems) => prevItems.filter((item) => item.i !== id));
   };
 
   const undo = () => {
