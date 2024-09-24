@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { BentoItem, LayoutItem, Layouts } from "@/types/types";
 import { XCircle } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -28,17 +28,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   onLayoutChange,
   onRemoveItem,
 }) => {
-  const [currentItems, setCurrentItems] = useState<BentoItem[]>(items);
-
-  // Ensure that the items are updated only when the items prop changes
-  useEffect(() => {
-    setCurrentItems(items);
-  }, [items]);
-
   const handleRemoveItem = (id: string) => {
-    // Update currentItems state by filtering out the item
-    const updatedItems = currentItems.filter((item) => item.i !== id);
-    setCurrentItems(updatedItems);
     onRemoveItem(id);
   };
 
@@ -105,14 +95,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       compactType={isDense ? "vertical" : null}
       preventCollision={!isDense}
       margin={[gap, gap]}
-      onLayoutChange={(currentLayout) => {
-        // Only trigger if there's a real change
-        if (JSON.stringify(layouts) !== JSON.stringify(currentLayout)) {
-          onLayoutChange(currentLayout);
-        }
-      }}
+      onLayoutChange={(currentLayout) => onLayoutChange(currentLayout)}
     >
-      {currentItems.map((item) => (
+      {items.map((item) => (
         <div
           key={item.i}
           className="bg-secondary text-secondary-foreground overflow-hidden"

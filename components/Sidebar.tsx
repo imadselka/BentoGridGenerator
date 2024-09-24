@@ -21,6 +21,8 @@ type SidebarProps = {
   newLayoutName: string;
   setNewLayoutName: (name: string) => void;
   saveCurrentLayout: () => void;
+  canUndo: boolean; // Ensure canUndo is defined
+  canRedo: boolean; // Ensure canRedo is also defined
 };
 
 const Sidebar = ({
@@ -36,6 +38,8 @@ const Sidebar = ({
   addItem,
   undo, // Destructure undo
   redo, // Destructure redo
+  canUndo,
+  canRedo,
   newLayoutName,
   setNewLayoutName,
   saveCurrentLayout,
@@ -68,6 +72,8 @@ const Sidebar = ({
         addItem={addItem}
         undo={undo} // Pass undo function
         redo={redo} // Pass redo function
+        canUndo={canUndo}
+        canRedo={canRedo}
       />
       <SaveLayout
         newLayoutName={newLayoutName}

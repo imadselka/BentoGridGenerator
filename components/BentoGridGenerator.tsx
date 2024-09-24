@@ -8,13 +8,12 @@ import GridLayout from "./GridLayout";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 
-// Updated exampleLayouts with unique IDs
 const exampleLayouts: Layout[] = [
   {
     name: "Portfolio Display",
     items: [
       {
-        i: `portfolio-1-${Date.now()}`,
+        i: "portfolio-1",
         x: 0,
         y: 0,
         w: 4,
@@ -25,7 +24,7 @@ const exampleLayouts: Layout[] = [
         link: "#",
       },
       {
-        i: `portfolio-2-${Date.now()}`,
+        i: "portfolio-2",
         x: 4,
         y: 0,
         w: 4,
@@ -34,7 +33,7 @@ const exampleLayouts: Layout[] = [
         content: "Learn more about my skills and experience",
       },
       {
-        i: `portfolio-3-${Date.now()}`,
+        i: "portfolio-3",
         x: 8,
         y: 0,
         w: 4,
@@ -48,7 +47,7 @@ const exampleLayouts: Layout[] = [
     name: "Recipe Collection",
     items: [
       {
-        i: `recipe-1-${Date.now()}`,
+        i: "recipe-1",
         x: 0,
         y: 0,
         w: 6,
@@ -61,7 +60,7 @@ const exampleLayouts: Layout[] = [
           "Cook pasta, mix with egg and cheese sauce, add pancetta",
       },
       {
-        i: `recipe-2-${Date.now()}`,
+        i: "recipe-2",
         x: 6,
         y: 0,
         w: 3,
@@ -70,7 +69,7 @@ const exampleLayouts: Layout[] = [
         content: "Pasta, eggs, pancetta, cheese",
       },
       {
-        i: `recipe-3-${Date.now()}`,
+        i: "recipe-3",
         x: 9,
         y: 0,
         w: 3,
@@ -117,7 +116,7 @@ export function BentoGridGenerator() {
     setRedoStack([]); // Clear redo stack on new action
 
     const newItem: BentoItem = {
-      i: `n${Date.now()}`, // Ensure unique ID
+      i: `n${Date.now()}`,
       x: 0,
       y: Infinity,
       w: 3,
@@ -130,16 +129,11 @@ export function BentoGridGenerator() {
   };
 
   const removeItem = (id: string) => {
-    // Check if the item exists before removing
-    const itemToRemove = items.find((item) => item.i === id);
-    if (!itemToRemove) return; // Item does not exist, exit
-
     // Save current state to undo stack before removing
     setUndoStack([...undoStack, items]);
     setRedoStack([]); // Clear redo stack on new action
 
-    // Filter out the item from the list
-    setItems((prevItems) => prevItems.filter((item) => item.i !== id));
+    setItems(items.filter((item) => item.i !== id));
   };
 
   const undo = () => {
@@ -222,28 +216,33 @@ export function BentoGridGenerator() {
 </div>`;
   };
 
+  const canUndo = undoStack.length > 0; // Determine if undo is possible
+  const canRedo = redoStack.length > 0; // Determine if redo is possible
+
   return (
     <div className="flex flex-col h-screen">
       <Header exportTailwindCSS={exportTailwindCSS} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
+          layouts={layouts}
+          handleLayoutChange={handleLayoutChange}
+          selectedLayout={selectedLayout}
           gap={gap}
           setGap={setGap}
-          isDense={isDense}
-          setIsDense={setIsDense}
           borderRadius={borderRadius}
           setBorderRadius={setBorderRadius}
-          layouts={layouts}
-          selectedLayout={selectedLayout}
-          handleLayoutChange={handleLayoutChange}
+          isDense={isDense}
+          setIsDense={setIsDense}
+          addItem={addItem}
+          undo={undo} // Pass undo function
+          redo={redo} // Pass redo function
           newLayoutName={newLayoutName}
           setNewLayoutName={setNewLayoutName}
           saveCurrentLayout={saveCurrentLayout}
-          addItem={addItem}
-          undo={undo}
-          redo={redo}
+          canRedo={canRedo} // Pass actual canRedo state
+          canUndo={canUndo} // Pass actual canUndo state
         />
-        <main className="flex-1 p-4">
+        <main className="flex-1 p-4 overflow-auto">
           <GridLayout
             layouts={getLayouts()}
             gap={gap}
