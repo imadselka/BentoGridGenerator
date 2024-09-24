@@ -1,5 +1,6 @@
 import { Layout } from "@/types/types";
-import ActionButtons from "./ActionButtons";
+
+import { ActionButtons } from "./ActionButtons";
 import GridCustomizer from "./GridCustomizer";
 import LayoutPreviewCard from "./LayoutPreviewCard";
 import SaveLayout from "./SaveLayout";
@@ -15,8 +16,8 @@ type SidebarProps = {
   isDense: boolean;
   setIsDense: (dense: boolean) => void;
   addItem: () => void;
-  undo: () => void;
-  redo: () => void;
+  undo: () => void; // Add undo prop
+  redo: () => void; // Add redo prop
   newLayoutName: string;
   setNewLayoutName: (name: string) => void;
   saveCurrentLayout: () => void;
@@ -33,8 +34,8 @@ const Sidebar = ({
   isDense,
   setIsDense,
   addItem,
-  undo,
-  redo,
+  undo, // Destructure undo
+  redo, // Destructure redo
   newLayoutName,
   setNewLayoutName,
   saveCurrentLayout,
@@ -63,7 +64,11 @@ const Sidebar = ({
         isDense={isDense}
         setIsDense={setIsDense}
       />
-      <ActionButtons addItem={addItem} undo={undo} redo={redo} />
+      <ActionButtons
+        addItem={addItem}
+        undo={undo} // Pass undo function
+        redo={redo} // Pass redo function
+      />
       <SaveLayout
         newLayoutName={newLayoutName}
         setNewLayoutName={setNewLayoutName}

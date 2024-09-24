@@ -7,7 +7,7 @@ type ActionButtonsProps = {
   redo: () => void;
 };
 
-const ActionButtons = ({ addItem, undo, redo }: ActionButtonsProps) => {
+export const ActionButtons = ({ addItem, undo, redo }: ActionButtonsProps) => {
   return (
     <section>
       <h2 className="text-lg font-semibold mb-2">Actions</h2>
@@ -15,15 +15,13 @@ const ActionButtons = ({ addItem, undo, redo }: ActionButtonsProps) => {
         <Button onClick={addItem}>
           <Plus className="w-4 h-4 mr-2" /> Add Item
         </Button>
-        <Button onClick={undo}>
+        <Button onClick={undo} disabled={false}>
           <Undo className="w-4 h-4 mr-2" /> Undo
         </Button>
-        <Button onClick={redo}>
+        <Button onClick={redo} disabled={false}>
           <Redo className="w-4 h-4 mr-2" /> Redo
         </Button>
       </div>
     </section>
   );
 };
-
-export default ActionButtons;

@@ -1,81 +1,85 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { BentoItem, Layout, LayoutItem } from "@/types/types";
+import { useCallback, useEffect, useState } from "react";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import GridLayout from "./GridLayout";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 
-type BentoItem = {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  title: string;
-  content: string;
-};
-
-type layoutItem = {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-};
-
-type Layout = {
-  name: string;
-  items: BentoItem[];
-};
-
 const exampleLayouts: Layout[] = [
-  // Define example layouts if needed
+  {
+    name: "Portfolio Display",
+    items: [
+      {
+        i: "portfolio-1",
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 2,
+        title: "Project Showcase",
+        content: "A collection of my best work",
+        image: "https://via.placeholder.com/400x200",
+        link: "#",
+      },
+      {
+        i: "portfolio-2",
+        x: 4,
+        y: 0,
+        w: 4,
+        h: 2,
+        title: "About Me",
+        content: "Learn more about my skills and experience",
+      },
+      {
+        i: "portfolio-3",
+        x: 8,
+        y: 0,
+        w: 4,
+        h: 2,
+        title: "Contact",
+        content: "Get in touch for collaborations",
+      },
+    ],
+  },
+  {
+    name: "Recipe Collection",
+    items: [
+      {
+        i: "recipe-1",
+        x: 0,
+        y: 0,
+        w: 6,
+        h: 2,
+        title: "Spaghetti Carbonara",
+        content: "Classic Italian pasta dish",
+        image: "https://via.placeholder.com/600x200",
+        ingredients: ["Pasta", "Eggs", "Pancetta", "Cheese"],
+        cookingMethod:
+          "Cook pasta, mix with egg and cheese sauce, add pancetta",
+      },
+      {
+        i: "recipe-2",
+        x: 6,
+        y: 0,
+        w: 3,
+        h: 2,
+        title: "Ingredients",
+        content: "Pasta, eggs, pancetta, cheese",
+      },
+      {
+        i: "recipe-3",
+        x: 9,
+        y: 0,
+        w: 3,
+        h: 2,
+        title: "Cooking Method",
+        content: "Step-by-step instructions",
+      },
+    ],
+  },
 ];
-
-type HistoryState = {
-  past: BentoItem[][];
-  present: BentoItem[];
-  future: BentoItem[][];
-};
-
-type HistoryAction =
-  | { type: "UPDATE"; items: BentoItem[] }
-  | { type: "UNDO" }
-  | { type: "REDO" };
-
-const historyReducer = (
-  state: HistoryState,
-  action: HistoryAction
-): HistoryState => {
-  switch (action.type) {
-    case "UPDATE":
-      return {
-        past: [...state.past, state.present],
-        present: action.items,
-        future: [],
-      };
-    case "UNDO":
-      if (state.past.length === 0) return state;
-      const previous = state.past[state.past.length - 1];
-      return {
-        past: state.past.slice(0, -1),
-        present: previous,
-        future: [state.present, ...state.future],
-      };
-    case "REDO":
-      if (state.future.length === 0) return state;
-      const next = state.future[0];
-      return {
-        past: [...state.past, state.present],
-        present: next,
-        future: state.future.slice(1),
-      };
-    default:
-      return state;
-  }
-};
 
 export function BentoGridGenerator() {
   const [gap, setGap] = useState(4);
@@ -85,12 +89,11 @@ export function BentoGridGenerator() {
   const [layouts, setLayouts] = useState<Layout[]>(exampleLayouts);
   const [newLayoutName, setNewLayoutName] = useState("");
   const [selectedLayout, setSelectedLayout] = useState(layouts[0]?.name || "");
+  const [items, setItems] = useState<BentoItem[]>(layouts[0]?.items || []);
 
-  const [history, dispatch] = useReducer(historyReducer, {
-    past: [],
-    present: exampleLayouts[0]?.items || [],
-    future: [],
-  });
+  // Undo/Redo states
+  const [undoStack, setUndoStack] = useState<BentoItem[][]>([]);
+  const [redoStack, setRedoStack] = useState<BentoItem[][]>([]);
 
   const updateLayout = useCallback(() => {
     const width = window.innerWidth;
@@ -108,33 +111,59 @@ export function BentoGridGenerator() {
   }, [updateLayout]);
 
   const addItem = () => {
+    // Save current state to undo stack before adding
+    setUndoStack([...undoStack, items]);
+    setRedoStack([]); // Clear redo stack on new action
+
     const newItem: BentoItem = {
-      i: String(history.present.length + 1),
+      i: `n${Date.now()}`,
       x: 0,
       y: Infinity,
       w: 3,
       h: 2,
-      title: `New Item ${history.present.length + 1}`,
+      title: `New Item ${items.length + 1}`,
       content: "Edit this content to describe your new item.",
+      image: "https://via.placeholder.com/300x200",
     };
-    dispatch({ type: "UPDATE", items: [...history.present, newItem] });
+    setItems([...items, newItem]);
   };
 
   const removeItem = (id: string) => {
-    const updatedItems = history.present.filter((item) => item.i !== id);
-    dispatch({ type: "UPDATE", items: updatedItems });
+    // Save current state to undo stack before removing
+    setUndoStack([...undoStack, items]);
+    setRedoStack([]); // Clear redo stack on new action
+
+    setItems(items.filter((item) => item.i !== id));
   };
 
-  const onLayoutChange = (layout: layoutItem[]) => {
-    const updatedItems = history.present.map((item) => {
+  const undo = () => {
+    if (undoStack.length > 0) {
+      const previousItems = undoStack[undoStack.length - 1];
+      setRedoStack([...redoStack, items]); // Push current state to redo stack
+      setItems(previousItems);
+      setUndoStack(undoStack.slice(0, -1)); // Pop from undo stack
+    }
+  };
+
+  const redo = () => {
+    if (redoStack.length > 0) {
+      const nextItems = redoStack[redoStack.length - 1];
+      setUndoStack([...undoStack, items]); // Push current state to undo stack
+      setItems(nextItems);
+      setRedoStack(redoStack.slice(0, -1)); // Pop from redo stack
+    }
+  };
+
+  const onLayoutChange = (layout: LayoutItem[]) => {
+    const updatedItems = items.map((item) => {
       const layoutItem = layout.find((l) => l.i === item.i);
       return layoutItem ? { ...item, ...layoutItem } : item;
     });
-    dispatch({ type: "UPDATE", items: updatedItems });
+    setItems(updatedItems);
   };
 
   const getLayouts = () => {
-    const baseLayout = history.present.map((item) => ({
+    const baseLayout = items.map((item) => ({
       ...item,
       w:
         currentBreakpoint === "sm"
@@ -153,7 +182,7 @@ export function BentoGridGenerator() {
   const handleLayoutChange = (layoutName: string) => {
     const newLayout = layouts.find((layout) => layout.name === layoutName);
     if (newLayout) {
-      dispatch({ type: "UPDATE", items: newLayout.items });
+      setItems(newLayout.items);
       setSelectedLayout(layoutName);
     }
   };
@@ -162,7 +191,7 @@ export function BentoGridGenerator() {
     if (newLayoutName.trim() === "") return;
     const newLayout: Layout = {
       name: newLayoutName,
-      items: history.present,
+      items: items,
     };
     setLayouts([...layouts, newLayout]);
     setNewLayoutName("");
@@ -173,7 +202,7 @@ export function BentoGridGenerator() {
       isDense ? "" : "grid-flow-row-dense"
     }`;
 
-    const itemClasses = history.present
+    const itemClasses = items
       .map((item) => {
         return `<div class="col-span-${item.w} row-span-${item.h} bg-secondary text-secondary-foreground rounded-[${borderRadius}px] p-6">
   <h3 class="text-lg font-semibold">${item.title}</h3>
@@ -202,8 +231,8 @@ export function BentoGridGenerator() {
           isDense={isDense}
           setIsDense={setIsDense}
           addItem={addItem}
-          undo={() => dispatch({ type: "UNDO" })}
-          redo={() => dispatch({ type: "REDO" })}
+          undo={undo} // Pass undo function
+          redo={redo} // Pass redo function
           newLayoutName={newLayoutName}
           setNewLayoutName={setNewLayoutName}
           saveCurrentLayout={saveCurrentLayout}
@@ -213,7 +242,8 @@ export function BentoGridGenerator() {
             layouts={getLayouts()}
             gap={gap}
             isDense={isDense}
-            history={history}
+            borderRadius={borderRadius}
+            items={items}
             onLayoutChange={onLayoutChange}
             onRemoveItem={removeItem}
           />
