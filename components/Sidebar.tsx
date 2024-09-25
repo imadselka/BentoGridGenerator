@@ -49,7 +49,7 @@ const Sidebar = ({
   createNewEmptyLayout,
 }: SidebarProps) => {
   return (
-    <aside className="w-80 bg-background border-r p-4 overflow-y-auto flex flex-col space-y-6 custom-scrollbar">
+    <aside className="w-80 bg-background border-r p-4 overflow-y-auto flex flex-col space-y-6 fancy-scrollbar">
       <section>
         <h2 className="text-lg font-semibold mb-2">Choose a Layout</h2>
         <div className="grid grid-cols-1 gap-4">

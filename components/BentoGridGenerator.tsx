@@ -20,7 +20,6 @@ const exampleLayouts: Layout[] = [
         h: 2,
         title: "Project Showcase",
         content: "A collection of my best work",
-
         link: "#",
       },
       {
@@ -54,7 +53,6 @@ const exampleLayouts: Layout[] = [
         h: 2,
         title: "Spaghetti Carbonara",
         content: "Classic Italian pasta dish",
-
         ingredients: ["Pasta", "Eggs", "Pancetta", "Cheese"],
         cookingMethod:
           "Cook pasta, mix with egg and cheese sauce, add pancetta",
@@ -91,6 +89,7 @@ export function BentoGridGenerator() {
   const [selectedLayout, setSelectedLayout] = useState(layouts[0]?.name || "");
   const [items, setItems] = useState<BentoItem[]>(layouts[0]?.items || []);
   const [currentLayout, setCurrentLayout] = useState<Layout>(layouts[0]);
+
   const [undoStack, setUndoStack] = useState<BentoItem[][]>([]);
   const [redoStack, setRedoStack] = useState<BentoItem[][]>([]);
 
@@ -110,9 +109,8 @@ export function BentoGridGenerator() {
   }, [updateLayout]);
 
   const addItem = () => {
-    // Save current state to undo stack before adding
     setUndoStack([...undoStack, items]);
-    setRedoStack([]); // Clear redo stack on new action
+    setRedoStack([]);
 
     const newItem: BentoItem = {
       i: `n${Date.now()}`,
@@ -123,34 +121,18 @@ export function BentoGridGenerator() {
       title: `New Item ${items.length + 1}`,
       content: "Edit this content to describe your new item.",
     };
-    setItems([...items, newItem]);
+    const updatedItems = [...items, newItem];
+    setItems(updatedItems);
+    updateCurrentLayout(updatedItems);
   };
 
   const removeItem = (id: string) => {
-    // Save current state to undo stack before removing
-    setUndoStack((prev) => [...prev, items]);
-    setRedoStack([]); // Clear redo stack on new action
-  
-    // Use a functional update to ensure you're working with the latest state
-    setItems((prevItems) => prevItems.filter((item) => item.i !== id));
-  };
+    setUndoStack([...undoStack, items]);
+    setRedoStack([]);
 
-  const undo = () => {
-    if (undoStack.length > 0) {
-      const previousItems = undoStack[undoStack.length - 1];
-      setRedoStack([...redoStack, items]); // Push current state to redo stack
-      setItems(previousItems);
-      setUndoStack(undoStack.slice(0, -1)); // Pop from undo stack
-    }
-  };
-
-  const redo = () => {
-    if (redoStack.length > 0) {
-      const nextItems = redoStack[redoStack.length - 1];
-      setUndoStack([...undoStack, items]); // Push current state to undo stack
-      setItems(nextItems);
-      setRedoStack(redoStack.slice(0, -1)); // Pop from redo stack
-    }
+    const updatedItems = items.filter((item) => item.i !== id);
+    setItems(updatedItems);
+    updateCurrentLayout(updatedItems);
   };
 
   const onLayoutChange = (layout: LayoutItem[]) => {
@@ -159,14 +141,15 @@ export function BentoGridGenerator() {
       return layoutItem ? { ...item, ...layoutItem } : item;
     });
     setItems(updatedItems);
+    updateCurrentLayout(updatedItems);
+  };
 
-    // Update the current layout
+  const updateCurrentLayout = (updatedItems: BentoItem[]) => {
     setCurrentLayout((prevLayout) => ({
       ...prevLayout,
       items: updatedItems,
     }));
 
-    // Update the layouts array
     setLayouts((prevLayouts) =>
       prevLayouts.map((l) =>
         l.name === currentLayout.name ? { ...l, items: updatedItems } : l
@@ -210,6 +193,26 @@ export function BentoGridGenerator() {
     setNewLayoutName("");
   };
 
+  const undo = () => {
+    if (undoStack.length > 0) {
+      const previousItems = undoStack[undoStack.length - 1];
+      setRedoStack([...redoStack, items]);
+      setItems(previousItems);
+      updateCurrentLayout(previousItems);
+      setUndoStack(undoStack.slice(0, -1));
+    }
+  };
+
+  const redo = () => {
+    if (redoStack.length > 0) {
+      const nextItems = redoStack[redoStack.length - 1];
+      setUndoStack([...undoStack, items]);
+      setItems(nextItems);
+      updateCurrentLayout(nextItems);
+      setRedoStack(redoStack.slice(0, -1));
+    }
+  };
+
   const exportTailwindCSS = () => {
     const gridClasses = `grid grid-cols-4 md:grid-cols-8 lg:grid-cols-12 gap-${gap} ${
       isDense ? "" : "grid-flow-row-dense"
@@ -229,19 +232,19 @@ export function BentoGridGenerator() {
 </div>`;
   };
 
-  const canUndo = undoStack.length > 0; // Determine if undo is possible
-  const canRedo = redoStack.length > 0; // Determine if redo is possible
+  const canUndo = undoStack.length > 0;
+  const canRedo = redoStack.length > 0;
+
   const createNewEmptyLayout = (name: string) => {
     if (!name.trim()) return;
-
     const newLayout = {
       name,
       items: [],
     };
-
     setLayouts([...layouts, newLayout]);
     setSelectedLayout(name);
     setItems([]);
+    setCurrentLayout(newLayout);
   };
 
   return (
@@ -259,16 +262,16 @@ export function BentoGridGenerator() {
           isDense={isDense}
           setIsDense={setIsDense}
           addItem={addItem}
-          undo={undo} // Pass undo function
-          redo={redo} // Pass redo function
+          undo={undo}
+          redo={redo}
           newLayoutName={newLayoutName}
           setNewLayoutName={setNewLayoutName}
           saveCurrentLayout={saveCurrentLayout}
-          canRedo={canRedo} // Pass actual canRedo state
-          canUndo={canUndo} // Pass actual canUndo state
+          canUndo={canUndo}
+          canRedo={canRedo}
           createNewEmptyLayout={createNewEmptyLayout}
         />
-        <main className="flex-1 p-4 overflow-auto">
+        <main className="flex-1 p-4 overflow-auto fancy-scrollbar">
           <GridLayout
             layouts={getLayouts()}
             gap={gap}
