@@ -20,7 +20,7 @@ const exampleLayouts: Layout[] = [
         h: 2,
         title: "Project Showcase",
         content: "A collection of my best work",
-        image: "https://via.placeholder.com/400x200",
+
         link: "#",
       },
       {
@@ -54,7 +54,7 @@ const exampleLayouts: Layout[] = [
         h: 2,
         title: "Spaghetti Carbonara",
         content: "Classic Italian pasta dish",
-        image: "https://via.placeholder.com/600x200",
+
         ingredients: ["Pasta", "Eggs", "Pancetta", "Cheese"],
         cookingMethod:
           "Cook pasta, mix with egg and cheese sauce, add pancetta",
@@ -123,7 +123,6 @@ export function BentoGridGenerator() {
       h: 2,
       title: `New Item ${items.length + 1}`,
       content: "Edit this content to describe your new item.",
-      image: "https://via.placeholder.com/300x200",
     };
     setItems([...items, newItem]);
   };
@@ -219,6 +218,18 @@ export function BentoGridGenerator() {
 
   const canUndo = undoStack.length > 0; // Determine if undo is possible
   const canRedo = redoStack.length > 0; // Determine if redo is possible
+  const createNewEmptyLayout = (name: string) => {
+    if (!name.trim()) return;
+
+    const newLayout = {
+      name,
+      items: [],
+    };
+
+    setLayouts([...layouts, newLayout]);
+    setSelectedLayout(name);
+    setItems([]);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -242,6 +253,7 @@ export function BentoGridGenerator() {
           saveCurrentLayout={saveCurrentLayout}
           canRedo={canRedo} // Pass actual canRedo state
           canUndo={canUndo} // Pass actual canUndo state
+          createNewEmptyLayout={createNewEmptyLayout}
         />
         <main className="flex-1 p-4 overflow-auto">
           <GridLayout

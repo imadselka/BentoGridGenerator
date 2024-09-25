@@ -22,6 +22,7 @@ const LayoutPreviewCard = ({
       aria-pressed={isSelected}
     >
       <h3 className="text-sm font-semibold mb-2">{layout.name}</h3>
+      {/* Displaying the grid preview based on layout items */}
       <div className="grid grid-cols-12 gap-1 h-24 overflow-hidden">
         {layout.items.map((item) => (
           <div

@@ -1,10 +1,9 @@
 import { Layout } from "@/types/types";
-
 import { ActionButtons } from "./ActionButtons";
 import GridCustomizer from "./GridCustomizer";
 import LayoutPreviewCard from "./LayoutPreviewCard";
+import NewEmptyBoardDialog from "./NewEmptyBoardDialog";
 import SaveLayout from "./SaveLayout";
-
 type SidebarProps = {
   layouts: Layout[];
   handleLayoutChange: (layoutName: string) => void;
@@ -16,13 +15,14 @@ type SidebarProps = {
   isDense: boolean;
   setIsDense: (dense: boolean) => void;
   addItem: () => void;
-  undo: () => void; // Add undo prop
-  redo: () => void; // Add redo prop
+  undo: () => void;
+  redo: () => void;
   newLayoutName: string;
   setNewLayoutName: (name: string) => void;
   saveCurrentLayout: () => void;
-  canUndo: boolean; // Ensure canUndo is defined
-  canRedo: boolean; // Ensure canRedo is also defined
+  canUndo: boolean;
+  canRedo: boolean;
+  createNewEmptyLayout: (name: string) => void; // New function for creating a new board
 };
 
 const Sidebar = ({
@@ -36,13 +36,14 @@ const Sidebar = ({
   isDense,
   setIsDense,
   addItem,
-  undo, // Destructure undo
-  redo, // Destructure redo
+  undo,
+  redo,
   canUndo,
   canRedo,
   newLayoutName,
   setNewLayoutName,
   saveCurrentLayout,
+  createNewEmptyLayout, // Destructure the new prop
 }: SidebarProps) => {
   return (
     <aside className="w-80 bg-background border-r p-4 overflow-y-auto flex flex-col space-y-6">
@@ -68,18 +69,22 @@ const Sidebar = ({
         isDense={isDense}
         setIsDense={setIsDense}
       />
+
       <ActionButtons
         addItem={addItem}
-        undo={undo} // Pass undo function
-        redo={redo} // Pass redo function
+        undo={undo}
+        redo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
       />
+
       <SaveLayout
         newLayoutName={newLayoutName}
         setNewLayoutName={setNewLayoutName}
         saveCurrentLayout={saveCurrentLayout}
       />
+
+      <NewEmptyBoardDialog createNewEmptyLayout={createNewEmptyLayout} />
     </aside>
   );
 };
