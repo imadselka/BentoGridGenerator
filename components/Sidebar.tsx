@@ -1,9 +1,12 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Layout } from "@/types/types";
-import { ActionButtons } from "./ActionButtons";
-import GridCustomizer from "./GridCustomizer";
+import { Plus, Redo, Undo } from "lucide-react";
 import LayoutPreviewCard from "./LayoutPreviewCard";
-import NewEmptyBoardDialog from "./NewEmptyBoardDialog";
-import SaveLayout from "./SaveLayout";
+
 type SidebarProps = {
   layouts: Layout[];
   handleLayoutChange: (layoutName: string) => void;
@@ -22,7 +25,7 @@ type SidebarProps = {
   saveCurrentLayout: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  createNewEmptyLayout: (name: string) => void; // New function for creating a new board
+  createNewEmptyLayout: (name: string) => void;
 };
 
 const Sidebar = ({
@@ -38,15 +41,15 @@ const Sidebar = ({
   addItem,
   undo,
   redo,
-  canUndo,
-  canRedo,
   newLayoutName,
   setNewLayoutName,
   saveCurrentLayout,
-  createNewEmptyLayout, // Destructure the new prop
+  canUndo,
+  canRedo,
+  createNewEmptyLayout,
 }: SidebarProps) => {
   return (
-    <aside className="w-80 bg-background border-r p-4 overflow-y-auto flex flex-col space-y-6">
+    <aside className="w-80 bg-background border-r p-4 overflow-y-auto flex flex-col space-y-6 custom-scrollbar">
       <section>
         <h2 className="text-lg font-semibold mb-2">Choose a Layout</h2>
         <div className="grid grid-cols-1 gap-4">
@@ -58,33 +61,88 @@ const Sidebar = ({
               isSelected={selectedLayout === layout.name}
             />
           ))}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() =>
+              createNewEmptyLayout(`New Layout ${layouts.length + 1}`)
+            }
+          >
+            <Plus className="w-4 h-4 mr-2" /> New Empty Layout
+          </Button>
         </div>
       </section>
 
-      <GridCustomizer
-        gap={gap}
-        setGap={setGap}
-        borderRadius={borderRadius}
-        setBorderRadius={setBorderRadius}
-        isDense={isDense}
-        setIsDense={setIsDense}
-      />
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Customize Grid</h2>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="gap">Gap: {gap}</Label>
+            <Slider
+              id="gap"
+              min={0}
+              max={8}
+              step={1}
+              value={[gap]}
+              onValueChange={(value) => setGap(value[0])}
+            />
+          </div>
+          <div>
+            <Label htmlFor="border-radius">
+              Border Radius: {borderRadius}px
+            </Label>
+            <Slider
+              id="border-radius"
+              min={0}
+              max={24}
+              step={1}
+              value={[borderRadius]}
+              onValueChange={(value) => setBorderRadius(value[0])}
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="dense-mode"
+              checked={isDense}
+              onCheckedChange={setIsDense}
+            />
+            <Label htmlFor="dense-mode">Dense Mode</Label>
+          </div>
+        </div>
+      </section>
 
-      <ActionButtons
-        addItem={addItem}
-        undo={undo}
-        redo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-      />
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Actions</h2>
+        <div className="flex flex-col space-y-2">
+          <Button onClick={addItem}>
+            <Plus className="w-4 h-4 mr-2" /> Add Item
+          </Button>
+          <Button onClick={undo} disabled={!canUndo}>
+            <Undo className="w-4 h-4 mr-2" /> Undo
+          </Button>
+          <Button onClick={redo} disabled={!canRedo}>
+            <Redo className="w-4 h-4 mr-2" /> Redo
+          </Button>
+        </div>
+      </section>
 
-      <SaveLayout
-        newLayoutName={newLayoutName}
-        setNewLayoutName={setNewLayoutName}
-        saveCurrentLayout={saveCurrentLayout}
-      />
-
-      <NewEmptyBoardDialog createNewEmptyLayout={createNewEmptyLayout} />
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Save Layout</h2>
+        <div className="flex flex-col space-y-2">
+          <Input
+            type="text"
+            placeholder="Enter layout name"
+            value={newLayoutName}
+            onChange={(e) => setNewLayoutName(e.target.value)}
+          />
+          <Button
+            onClick={saveCurrentLayout}
+            disabled={newLayoutName.trim() === ""}
+          >
+            Save Layout
+          </Button>
+        </div>
+      </section>
     </aside>
   );
 };

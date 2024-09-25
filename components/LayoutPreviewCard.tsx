@@ -1,4 +1,5 @@
 import { Layout } from "@/types/types";
+import { useEffect, useRef } from "react";
 
 type LayoutPreviewCardProps = {
   layout: Layout;
@@ -11,6 +12,42 @@ const LayoutPreviewCard = ({
   onClick,
   isSelected,
 }: LayoutPreviewCardProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const cellWidth = canvas.width / 12;
+        const cellHeight = canvas.height / 6;
+
+        layout.items.forEach((item) => {
+          ctx.fillStyle = isSelected
+            ? "rgba(59, 130, 246, 0.5)"
+            : "rgba(209, 213, 219, 0.5)";
+          ctx.fillRect(
+            item.x * cellWidth,
+            item.y * cellHeight,
+            item.w * cellWidth,
+            item.h * cellHeight
+          );
+          ctx.strokeStyle = isSelected
+            ? "rgb(59, 130, 246)"
+            : "rgb(156, 163, 175)";
+          ctx.strokeRect(
+            item.x * cellWidth,
+            item.y * cellHeight,
+            item.w * cellWidth,
+            item.h * cellHeight
+          );
+        });
+      }
+    }
+  }, [layout, isSelected]);
+
   return (
     <button
       onClick={onClick}
@@ -22,19 +59,12 @@ const LayoutPreviewCard = ({
       aria-pressed={isSelected}
     >
       <h3 className="text-sm font-semibold mb-2">{layout.name}</h3>
-      {/* Displaying the grid preview based on layout items */}
-      <div className="grid grid-cols-12 gap-1 h-24 overflow-hidden">
-        {layout.items.map((item) => (
-          <div
-            key={item.i}
-            className="bg-secondary"
-            style={{
-              gridColumn: `span ${item.w} / span ${item.w}`,
-              gridRow: `span ${item.h} / span ${item.h}`,
-            }}
-          ></div>
-        ))}
-      </div>
+      <canvas
+        ref={canvasRef}
+        width={120}
+        height={60}
+        className="w-full h-auto"
+      />
     </button>
   );
 };

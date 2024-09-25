@@ -90,8 +90,7 @@ export function BentoGridGenerator() {
   const [newLayoutName, setNewLayoutName] = useState("");
   const [selectedLayout, setSelectedLayout] = useState(layouts[0]?.name || "");
   const [items, setItems] = useState<BentoItem[]>(layouts[0]?.items || []);
-
-  // Undo/Redo states
+  const [currentLayout, setCurrentLayout] = useState<Layout>(layouts[0]);
   const [undoStack, setUndoStack] = useState<BentoItem[][]>([]);
   const [redoStack, setRedoStack] = useState<BentoItem[][]>([]);
 
@@ -131,7 +130,7 @@ export function BentoGridGenerator() {
     // Save current state to undo stack before removing
     setUndoStack((prev) => [...prev, items]);
     setRedoStack([]); // Clear redo stack on new action
-
+  
     // Use a functional update to ensure you're working with the latest state
     setItems((prevItems) => prevItems.filter((item) => item.i !== id));
   };
@@ -160,6 +159,19 @@ export function BentoGridGenerator() {
       return layoutItem ? { ...item, ...layoutItem } : item;
     });
     setItems(updatedItems);
+
+    // Update the current layout
+    setCurrentLayout((prevLayout) => ({
+      ...prevLayout,
+      items: updatedItems,
+    }));
+
+    // Update the layouts array
+    setLayouts((prevLayouts) =>
+      prevLayouts.map((l) =>
+        l.name === currentLayout.name ? { ...l, items: updatedItems } : l
+      )
+    );
   };
 
   const getLayouts = () => {
@@ -184,6 +196,7 @@ export function BentoGridGenerator() {
     if (newLayout) {
       setItems(newLayout.items);
       setSelectedLayout(layoutName);
+      setCurrentLayout(newLayout);
     }
   };
 
